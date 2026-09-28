@@ -1,0 +1,6 @@
+{
+  "name": "KRUKOV TEK ANTSIRABE",
+  "description": "Application complète d'entreprise pour KRUKOV TEK ANTSIRABE : gestion d'installations solaires & réseaux, facturation, devis, trésorerie, rapports terrain avec photos & GPS, badges QR code, pointage certifié, contrats et documents juridiques droit malagasy.",
+  "requestFramePermissions": ["geolocation", "camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

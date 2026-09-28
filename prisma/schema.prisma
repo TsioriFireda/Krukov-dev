@@ -1,0 +1,358 @@
+// Prisma schema for KRUKOV TEK ANTSIRABE
+// Target Database: PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model UserAccount {
+  id                    String   @id @default(cuid())
+  username              String   @unique
+  password              String
+  name                  String
+  role                  String   // admin, secretariat, chef_equipe, equipe_terrain, employe, stagiaire
+  phone                 String?
+  email                 String?
+  matricule             String   @unique
+  cin                   String?
+  qualification         String?
+  bloodGroup            String?
+  emergencyContactName  String?
+  emergencyContactPhone String?
+  healthNotes           String?
+  hourlyRate            Float?   @default(0)
+  dailyRate             Float?   @default(0)
+  rateType              String?  @default("journalier") // horaire, journalier, mensuel
+  monthlyBaseSalary     Float?   @default(0)
+  active                Boolean  @default(true)
+  createdDate           String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model Client {
+  id        String    @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  address   String?
+  nif       String?
+  stat      String?
+  notes     String?
+  invoices  Invoice[]
+  quotes    Quote[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Invoice {
+  id         String        @id
+  clientId   String
+  clientName String
+  issueDate  String
+  dueDate    String
+  totalHT    Float
+  totalTTC   Float
+  totalVAT   Float         @default(0)
+  status     String        @default("pending") // pending, paid, cancelled
+  notes      String?
+  archived   Boolean       @default(false)
+  client     Client?       @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  items      InvoiceItem[]
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+}
+
+model InvoiceItem {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  description String
+  unitPriceHT Float
+  quantity    Float    @default(1)
+  vatRate     Float    @default(0)
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+model Quote {
+  id         String      @id
+  clientId   String
+  clientName String
+  issueDate  String
+  validUntil String
+  totalHT    Float
+  totalTTC   Float
+  totalVAT   Float       @default(0)
+  status     String      @default("sent") // draft, sent, accepted, rejected
+  notes      String?
+  archived   Boolean     @default(false)
+  client     Client?     @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  items      QuoteItem[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model QuoteItem {
+  id          String   @id @default(cuid())
+  quoteId     String
+  description String
+  unitPriceHT Float
+  quantity    Float    @default(1)
+  vatRate     Float    @default(0)
+  quote       Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+}
+
+model Transaction {
+  id            String   @id
+  date          String
+  type          String   // recette, depense
+  category      String   // service, achat_materiel, salaire, loyer, carburant, divers
+  description   String
+  amountHT      Float
+  amountTTC     Float
+  vatAmount     Float    @default(0)
+  invoiceId     String?
+  paymentMethod String   // mvola, orange_money, airtel_money, especes, virement, cheque
+  receiptRef    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Worker {
+  id         String   @id
+  name       String
+  role       String
+  pinCode    String
+  phone      String?
+  active     Boolean  @default(true)
+  joinedDate String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model TimePunch {
+  id             String   @id
+  workerId       String
+  workerName     String
+  type           String   // arrivee, depart, chantier, pause
+  date           String
+  time           String
+  isoTimestamp   String
+  siteLocation   String
+  taskNote       String?
+  immutableHash  String?
+  gpsLatitude    Float?
+  gpsLongitude   Float?
+  createdAt      DateTime @default(now())
+}
+
+model MissionOrder {
+  id                  String   @id
+  reference           String   @unique
+  issueDate           String
+  startDate           String
+  endDate             String
+  destination         String
+  clientName          String
+  clientContact       String?
+  clientAddress       String?
+  objectOfMission     String
+  leadTechnicianId    String
+  leadTechnicianName  String
+  assignedWorkerIds   String[] // Array of worker IDs
+  assignedWorkerNames String[] // Array of worker names
+  transportMode       String?
+  vehiclePlate        String?
+  allocatedExpenses   Float    @default(0)
+  equipmentList       String?
+  specialInstructions String?
+  signedBy            String?
+  status              String   @default("en_cours") // en_cours, cloture, annule
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model DailyFieldReport {
+  id              String   @id
+  date            String
+  time            String
+  workerId        String
+  workerName      String
+  workerRole      String
+  siteName        String
+  clientName      String?
+  workDoneText    String
+  progressPercent Int      @default(0)
+  photos          String[] // Base64 or URLs
+  materialsUsed   String?
+  latitude        Float?
+  longitude       Float?
+  accuracy        Float?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model SiteIncidentReport {
+  id              String   @id
+  workerId        String
+  workerName      String
+  workerRole      String
+  date            String
+  time            String
+  siteName        String
+  severity        String   // mineur, modere, critique, bloquant
+  title           String
+  description     String
+  status          String   @default("signale") // signale, en_cours, resolu
+  latitude        Float?
+  longitude       Float?
+  resolutionNotes String?
+  resolvedAt      String?
+  resolvedBy      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model WorkerSalaryPayment {
+  id            String   @id
+  paymentDate   String
+  workerId      String
+  workerName    String
+  workerRole    String
+  period        String   // ex: Février 2026
+  paymentType   String   // acompte, solde, prime, journalier
+  amount        Float
+  paymentMethod String   // mvola, orange_money, especes, virement
+  reference     String?
+  recordedBy    String?
+  notes         String?
+  createdAt     DateTime @default(now())
+}
+
+model LegalDocument {
+  id                                 String   @id
+  type                               String   // recu_formation, contrat_stage_terrain, contrat_apprentissage, attestation_stage, attestation_formation, contrat_travail, attestation_travail
+  title                              String
+  createdAt                          DateTime @default(now())
+  issueDate                          String
+  issuePlace                         String?  @default("Antsirabe")
+  recipientName                      String
+  recipientBirthDate                 String?
+  recipientBirthPlace                String?
+  recipientCin                       String?
+  recipientCinDate                   String?
+  recipientCinPlace                  String?
+  recipientAddress                   String?
+  recipientPhone                     String?
+  recipientEmail                     String?
+  recipientRoleOrTitle               String?
+  contractModel                      String?  // stage, apprentissage, cdd_standard, cdi_standard
+  contractType                       String?  // CDD, CDI, Stage
+  contractPosition                   String?
+  contractProfessionalCategory       String?
+  contractStartDate                  String?
+  contractEndDate                    String?
+  contractTrialPeriodMonths          Int?
+  contractMonthlySalary              Float?
+  contractWeeklyHours                Int?
+  contractWorkplace                  String?
+  contractTransportAllowance         Float?
+  trainingTitle                      String?
+  trainingSession                    String?
+  trainingHoursTotal                 Int?
+  trainingStartDate                  String?
+  trainingEndDate                    String?
+  trainingGradeOrScore               String?
+  trainingModules                    String[]
+  trainingFeeTotal                   Float?
+  trainingFeePaid                    Float?
+  trainingFeeRemaining               Float?
+  paymentMethod                      String?
+  paymentReference                   String?
+  receiptType                        String?  // acompte, solde, totalite
+  institutionName                    String?
+  studyField                         String?
+  stageTheme                         String?
+  stageStartDate                     String?
+  stageEndDate                       String?
+  stageDurationWeeksOrMonths         String?
+  stageSupervisorName                String?
+  stageAppreciation                  String?
+  internshipSiteLocations            String?
+  internshipFieldSafetyAcknowledged  Boolean? @default(false)
+  apprenticeshipTrade                String?
+  apprenticeshipDurationMonths       Int?
+  apprenticeshipSchool               String?
+  apprenticeshipMasterName           String?
+  apprenticeshipMonthlyAllowance     Float?
+  apprenticeshipPracticalHours       Int?
+  apprenticeshipTheoreticalHours     Int?
+  employmentPositionHeld             String?
+  employmentStartDate                String?
+  employmentEndDate                  String?
+  leavingReasonNotice                String?
+  status                             String   @default("valide")
+  notes                              String?
+  signatoryName                      String?
+  signatoryTitle                     String?
+  updatedAt                          DateTime @updatedAt
+}
+
+model CompanySettings {
+  id                    String   @id @default("settings-default")
+  siret                 String?  @default("")
+  vatNumber             String?  @default("")
+  nif                   String?  @default("63122 12 2024 0 01200")
+  stat                  String?  @default("401 861 22 96")
+  rcs                   String?  @default("RCS ANTSIRABE N° 2024-A-00142")
+  cif                   String?  @default("Centre Fiscal DGI Antsirabe I")
+  address               String?  @default("LOT 0704 B410 Bis ANTSEVA AMBOHIMANARIVO ANTSIRABE I")
+  ownerName             String?  @default("RATSIMBANANTENAINA TSINJO ANDERSON")
+  companyName           String?  @default("Krukov tek")
+  email                 String?  @default("krukovtek@gmail.com")
+  phone                 String?  @default("033-51-848-75")
+  phoneSecondary        String?  @default("038 85 430 13")
+  legalStatus           String?  @default("micro-entreprise")
+  activityType          String?  @default("service")
+  professionTitle       String?  @default("Prestataire de service, FREELANCE")
+  vatRegime             String?  @default("non-assujetti")
+  taxSystem             String?  @default("standard")
+  autoArchiveEnabled    Boolean? @default(true)
+  archiveRetentionYears Int?     @default(2)
+  lastAutoArchiveDate   String?
+  updatedAt             DateTime @updatedAt
+}
+
+model ChatMessage {
+  id         String   @id @default(cuid())
+  channelId  String   @default("general")
+  senderId   String
+  senderName String
+  senderRole String
+  timestamp  String
+  date       String
+  time       String
+  type       String   @default("text") // text, image, file, alert
+  text       String
+  status     String   @default("read")
+  createdAt  DateTime @default(now())
+}
+
+model AccessLog {
+  id        String   @id
+  userId    String?
+  username  String
+  name      String
+  role      String
+  timestamp String
+  date      String
+  time      String
+  action    String
+  status    String
+  details   String?
+  createdAt DateTime @default(now())
+}

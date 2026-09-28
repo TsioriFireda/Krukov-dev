@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>KRUKOV TEK ANTSIRABE</title>
+    <meta name="description" content="Application complète de gestion d'installation, facturation, devis, comptabilité, rapports terrain avec photos, GPS, badges QR code, contrats de travail et attestations juridiques (droit malagasy) pour KRUKOV TEK ANTSIRABE." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+      (function() {
+        try {
+          var theme = localStorage.getItem('krukov_theme');
+          if (theme === 'midnight' || theme === 'dark') {
+            document.documentElement.classList.add('dark', 'midnight');
+          } else {
+            document.documentElement.classList.remove('dark', 'midnight');
+          }
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body class="bg-stone-100 dark:bg-[#0b0f19] text-stone-900 dark:text-slate-100 antialiased selection:bg-[#541515] selection:text-white min-h-screen">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
